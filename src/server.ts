@@ -14,13 +14,13 @@ import {URL} from 'url'
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
 
-  app.get("/filteredimage", async (req, res) => {
-    let image_url = req.query.image_url;
+  app.get("/filteredimage", async (req: Request, res: Response) => {
+    let image_url: string = req.query.image_url;
     // catch 422 error
     if (!image_url) { return res.sendStatus(422); }
 
     // validate param url
-    let isValidUrl = (url: string) => {
+    let isValidUrl: boolean = (url: string) => {
       try {
         new URL(url);
         return true;
@@ -62,7 +62,7 @@ import {URL} from 'url'
 
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
+  app.get( "/", async ( req: Request, res: Response ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
 
