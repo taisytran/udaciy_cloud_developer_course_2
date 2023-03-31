@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {URL} from 'url'
 
 (async () => {
 
@@ -9,9 +10,37 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   // Set the network port
   const port = process.env.PORT || 8082;
-  
+
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
+
+  app.get("/filteredimage", async (req, res) => {
+    let image_url = req.query.image_url;
+    // catch 422 error
+    if (!image_url) { return res.sendStatus(422); }
+
+    // validate param url
+    let isValidUrl = (url: string) => {
+      try {
+        new URL(url);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+    if (!isValidUrl(image_url)) { return res.sendStatus(400); }
+
+    // handle image
+    filterImageFromURL(image_url).then((data) => {
+      res.sendFile(data);
+
+      res.on("finish", () => {
+        deleteLocalFiles([data]);
+      })
+    }).catch((err) => {
+      res.status(500).send(err.message);
+    })
+  })
 
   // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
@@ -30,17 +59,17 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   /**************************************************************************** */
 
   //! END @TODO1
-  
+
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
-  
+
 
   // Start the Server
   app.listen( port, () => {
-      console.log( `server running http://localhost:${ port }` );
+    console.log( `server running http://localhost:${ port }` );
       console.log( `press CTRL+C to stop server` );
   } );
 })();
